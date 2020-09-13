@@ -1,4 +1,4 @@
-package SSD1306-go
+package SSD1306go
 
 import (
 	"errors"
