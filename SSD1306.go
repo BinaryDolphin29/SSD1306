@@ -71,7 +71,8 @@ func (oled *SSD1306) Init() {
 
 // Halt OLEDをストップします
 func (oled *SSD1306) Halt() {
-	// oled.reset()
+	oled.DisplayOff()
+	oled.reset()
 }
 
 func (oled *SSD1306) reset() {
