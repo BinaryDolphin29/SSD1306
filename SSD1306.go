@@ -1,4 +1,4 @@
-package SSD1306go
+package main
 
 import (
 	"errors"
@@ -71,7 +71,8 @@ func (oled *SSD1306) Init() {
 
 // Halt OLEDをストップします
 func (oled *SSD1306) Halt() {
-	oled.DisplayOff()
+	oled.Clear()
+	oled.Display()
 	oled.reset()
 }
 
@@ -173,9 +174,8 @@ func (oled *SSD1306) SetImage(img image.Image) error {
 	// }
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			r, g, b, _ := img.At(x, y).RGBA()
-			ans := r + g + b
-			if ans > 0 {
+			r, g, b, _ := bounds.At(x, y).RGBA()
+			if r > 0 || g > 0 || b > 0 {
 				oled.SetPixel(x, y, false)
 			}
 		}
