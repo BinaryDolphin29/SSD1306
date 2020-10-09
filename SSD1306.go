@@ -161,7 +161,7 @@ func (oled *SSD1306) Blink() {
 
 // Clear バッファーをクリアします
 func (oled *SSD1306) Clear() {
-	oled.buffer = make([]byte, (width*height)/8)
+	oled.buffer = make([]byte, (oled.Width*oled.Height)/8)
 	// oled.Display()
 }
 
