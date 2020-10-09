@@ -39,7 +39,7 @@ func NewSSD1306(width, height int, name string, addr int) (*SSD1306, error) {
 	}
 
 	ssd.i2c = d
-	ssd.buffer = make([]byte, 128*4)
+	ssd.buffer = make([]byte, width * height / 8)
 	return ssd, nil
 }
 
