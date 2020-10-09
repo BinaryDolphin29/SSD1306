@@ -39,7 +39,7 @@ func NewSSD1306(width, height int, name string, addr int) (*SSD1306, error) {
 	}
 
 	ssd.i2c = d
-	ssd.buffer = make([]byte, width * height / 8)
+	ssd.buffer = make([]byte, (width*height)/8)
 	return ssd, nil
 }
 
@@ -161,7 +161,7 @@ func (oled *SSD1306) Blink() {
 
 // Clear バッファーをクリアします
 func (oled *SSD1306) Clear() {
-	oled.buffer = make([]byte, 512)
+	oled.buffer = make([]byte, (width*height)/8)
 	// oled.Display()
 }
 
