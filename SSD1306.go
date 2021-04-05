@@ -51,7 +51,7 @@ func NewSSD1306(width, height int, name string, addr uint16) (*SSD1306, error) {
 	return oled, nil
 }
 
-// Init 初期設定
+// Init Initializing process.
 func (oled *SSD1306) Init() {
 	oled.reset()
 	oled.cmds([]byte{
@@ -77,7 +77,7 @@ func (oled *SSD1306) Init() {
 	})
 }
 
-// Close OLEDをストップします
+// Close Run Clear then Display and close i2c driver.
 func (oled *SSD1306) Close() {
 	oled.Clear()
 	oled.Display()
