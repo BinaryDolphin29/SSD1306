@@ -17,7 +17,7 @@ type SSD1306 struct {
 	Width  int
 	Height int
 	Name   string
-	Addr   int
+	Addr   uint16
 	com    struct {
 		i2c    *i2c.Dev
 		closer i2c.BusCloser
@@ -32,7 +32,7 @@ func NewSSD1306(width, height int, name string, addr uint16) (*SSD1306, error) {
 		Width:  width,
 		Height: height,
 		Name:   name,
-		Addr:   int(addr),
+		Addr:   addr,
 	}
 
 	if _, err := host.Init(); err != nil {
