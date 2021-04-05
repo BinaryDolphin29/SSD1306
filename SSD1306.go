@@ -1,12 +1,16 @@
-package SSD1306go
+package SSD1306
 
 import (
 	"errors"
 	"image"
+	"log"
 	"time"
 
-	"github.com/stianeikeland/go-rpio"
-	"golang.org/x/exp/io/i2c"
+	"periph.io/x/conn/v3/gpio"
+	"periph.io/x/conn/v3/i2c"
+	"periph.io/x/conn/v3/i2c/i2creg"
+	"periph.io/x/host/v3"
+	"periph.io/x/host/v3/rpi"
 )
 
 var (
@@ -20,27 +24,37 @@ type SSD1306 struct {
 	Height int
 	Name   string
 	Addr   int
-	i2c    *i2c.Device
+	com    struct {
+		i2c    *i2c.Dev
+		closer i2c.BusCloser
+	}
+
 	buffer []byte
 }
 
 // NewSSD1306 SSD1306
-func NewSSD1306(width, height int, name string, addr int) (*SSD1306, error) {
-	ssd := &SSD1306{
+func NewSSD1306(width, height int, name string, addr uint16) (*SSD1306, error) {
+	oled := &SSD1306{
 		Width:  width,
 		Height: height,
 		Name:   name,
-		Addr:   addr,
+		Addr:   int(addr),
 	}
 
-	d, err := i2c.Open(&i2c.Devfs{Dev: ssd.Name}, ssd.Addr)
+	if _, err := host.Init(); err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	b, err := i2creg.Open("/dev/i2c-1")
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
 
-	ssd.i2c = d
-	ssd.buffer = make([]byte, (width*height)/8)
-	return ssd, nil
+	oled.com.i2c = &i2c.Dev{Addr: addr, Bus: b}
+	oled.com.closer = b
+	oled.buffer = make([]byte, (width*height)/8)
+
+	return oled, nil
 }
 
 // Init 初期設定
@@ -69,25 +83,22 @@ func (oled *SSD1306) Init() {
 	})
 }
 
-// Halt OLEDをストップします
-func (oled *SSD1306) Halt() {
+// Close OLEDをストップします
+func (oled *SSD1306) Close() {
 	oled.Clear()
 	oled.Display()
-	oled.reset()
+
+	oled.com.closer.Close()
 }
 
 func (oled *SSD1306) reset() {
-	rpio.Open()
-	defer rpio.Close()
+	rstPin := rpi.P1_7
 
-	pin := rpio.Pin(4)
-	pin.Output()
-
-	pin.High()
+	rstPin.Out(gpio.High)
 	time.Sleep(time.Millisecond)
-	pin.Low()
+	rstPin.Out(gpio.Low)
 	time.Sleep(10 * time.Millisecond)
-	pin.High()
+	rstPin.Out(gpio.High)
 }
 
 // SetPixel 指定したい位置にドットを書きます
@@ -105,7 +116,7 @@ func (oled *SSD1306) Buffer() *[]byte {
 }
 
 // Display ディスプレイにバッファーを書き込みます
-func (oled *SSD1306) Display() error {
+func (oled *SSD1306) Display() (int, error) {
 	return oled.cmds(append([]byte{0x40}, oled.buffer...))
 }
 
@@ -149,20 +160,15 @@ func (oled *SSD1306) SetContrast(contrast int) error {
 }
 
 // Blink ディスプレイを点滅させます
-func (oled *SSD1306) Blink() {
+func (oled *SSD1306) Blink(t time.Duration) {
 	oled.DisplayOff()
-	time.Sleep(80 * time.Millisecond)
-	oled.DisplayOn()
-	time.Sleep(80 * time.Millisecond)
-	oled.DisplayOff()
-	time.Sleep(80 * time.Millisecond)
+	time.Sleep(t)
 	oled.DisplayOn()
 }
 
 // Clear バッファーをクリアします
 func (oled *SSD1306) Clear() {
 	oled.buffer = make([]byte, (oled.Width*oled.Height)/8)
-	// oled.Display()
 }
 
 // SetImage バッファーへ画像をセットします
@@ -201,10 +207,10 @@ func (oled *SSD1306) SetImageRGBA(img image.RGBA) error {
 	return nil
 }
 
-func (oled *SSD1306) cmd(d byte) error {
-	return oled.i2c.Write([]byte{0x80, d})
+func (oled *SSD1306) cmd(d byte) (int, error) {
+	return oled.com.i2c.Write([]byte{0x80, d})
 }
 
-func (oled *SSD1306) cmds(commands []byte) error {
-	return oled.i2c.Write(commands)
+func (oled *SSD1306) cmds(commands []byte) (int, error) {
+	return oled.com.i2c.Write(commands)
 }
