@@ -95,7 +95,7 @@ func (oled *SSD1306) reset() {
 	rstPin.Out(gpio.High)
 }
 
-// SetPixel 指定したい位置にドットを書きます
+// SetPixel Set the pixel at the buffer.
 func (oled *SSD1306) SetPixel(x, y int, inverse bool) {
 	if inverse {
 		oled.buffer[x+(y/8)*oled.Width] ^= (1 << (y & 7))
@@ -104,27 +104,27 @@ func (oled *SSD1306) SetPixel(x, y int, inverse bool) {
 	}
 }
 
-// Buffer 生のバッファーです
+// Buffer Raw buffer.
 func (oled *SSD1306) Buffer() *[]byte {
 	return &oled.buffer
 }
 
-// Display ディスプレイにバッファーを書き込みます
+// Display Write the buffer at the display.
 func (oled *SSD1306) Display() (int, error) {
 	return oled.cmds(append([]byte{0x40}, oled.buffer...))
 }
 
-// DisplayOn ディスプレイをオンにします
+// DisplayOn TurnOn the display.
 func (oled *SSD1306) DisplayOn() {
 	oled.cmd(byte(0xAF))
 }
 
-// DisplayOff ディスプレイをオフにします
+// DisplayOff TurnOff the display.
 func (oled *SSD1306) DisplayOff() {
 	oled.cmd(byte(0xAE))
 }
 
-// DisplayInvert ディスプレイの背景色を反転させます
+// DisplayInvert Invert the display pixel.
 func (oled *SSD1306) DisplayInvert(invert bool) {
 	if invert {
 		oled.cmd(0xA7)
@@ -133,7 +133,7 @@ func (oled *SSD1306) DisplayInvert(invert bool) {
 	}
 }
 
-// SetRotation ディスプレイの表示を回転します
+// SetRotation Unimplemented
 func (oled *SSD1306) SetRotation(n uint8) {
 	// 垂直 0xC0 / 0xC8
 	// 水平 0xA0 / 0xA1
@@ -141,25 +141,25 @@ func (oled *SSD1306) SetRotation(n uint8) {
 	// oled.cmd(byte())
 }
 
-// SetContrast コントラストを調整します (デフォルトは0x7F)
+// SetContrast Adjustment the display contrast. default is 0x7F.
 func (oled *SSD1306) SetContrast(contrast uint8) {
 	oled.cmd(0x81)
 	oled.cmd(contrast + 1)
 }
 
-// Blink ディスプレイを点滅させます
+// Blink Blink the display ones.
 func (oled *SSD1306) Blink(t time.Duration) {
 	oled.DisplayOff()
 	time.Sleep(t)
 	oled.DisplayOn()
 }
 
-// Clear バッファーをクリアします
+// Clear Clear the buffer. warn: does not run Display().
 func (oled *SSD1306) Clear() {
 	oled.buffer = make([]byte, (oled.Width*oled.Height)/8)
 }
 
-// SetImage バッファーへ画像をセットします
+// SetImage Set the image (image.Image) at the buffer.
 func (oled *SSD1306) SetImage(img image.Image) error {
 	bounds := img.Bounds()
 	// if bounds.Max.X > oled.Height || bounds.Max.Y > oled.Width {
@@ -178,7 +178,7 @@ func (oled *SSD1306) SetImage(img image.Image) error {
 	return nil
 }
 
-// SetImageRGBA image.RGBAの画像をバッファーへセットします
+// SetImageRGBA Set the image (image.RGBA) at the buffer.
 func (oled *SSD1306) SetImageRGBA(img image.RGBA) error {
 	bounds := img.Bounds()
 	// if bounds.Max.X > oled.Height || bounds.Max.Y > oled.Width {
