@@ -1,7 +1,6 @@
 package SSD1306
 
 import (
-	"errors"
 	"image"
 	"log"
 	"time"
@@ -11,11 +10,6 @@ import (
 	"periph.io/x/conn/v3/i2c/i2creg"
 	"periph.io/x/host/v3"
 	"periph.io/x/host/v3/rpi"
-)
-
-var (
-	// ErroledContrast コントラスト値が適切ではなかったとき
-	ErroledContrast error = errors.New("コントラストの値は1~256です")
 )
 
 // SSD1306 SSD1306
@@ -133,9 +127,9 @@ func (oled *SSD1306) DisplayOff() {
 // DisplayInvert ディスプレイの背景色を反転させます
 func (oled *SSD1306) DisplayInvert(invert bool) {
 	if invert {
-		oled.cmd(byte(0xA7))
+		oled.cmd(0xA7)
 	} else {
-		oled.cmd(byte(0xA6))
+		oled.cmd(0xA6)
 	}
 }
 
@@ -148,15 +142,9 @@ func (oled *SSD1306) SetRotation(n uint8) {
 }
 
 // SetContrast コントラストを調整します (デフォルトは0x7F)
-func (oled *SSD1306) SetContrast(contrast int) error {
-	if contrast <= 1 || contrast >= 256 {
-		return ErroledContrast
-	}
-
-	oled.cmd(byte(0x81))
-	oled.cmd(byte(contrast))
-
-	return nil
+func (oled *SSD1306) SetContrast(contrast uint8) {
+	oled.cmd(0x81)
+	oled.cmd(contrast + 1)
 }
 
 // Blink ディスプレイを点滅させます
